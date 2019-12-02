@@ -26,10 +26,14 @@ public class LifeGame {
     /** Barrera para permitir que el controlador de turnos y tableros controladores 
         esperen a que todos terminen de preparar la evolucion de las celulas **/
     private final CyclicBarrier prepareTurns;
+    
+    /*
     // Executor que controlara los hilos de tableros controladores
     private final ExecutorService boardsExecutor;
     // Executor que controlara el controlador de turnos
     private final ExecutorService timeExecutor;
+    */
+    
     // Factor utilizado para luego crear el turnManager y determinar la velocidad de cada turno
     private final double fct;
 
@@ -41,8 +45,8 @@ public class LifeGame {
         initializeGame(size * SIZEMINIBOARD, cells);
         this.passTurns = new CyclicBarrier((size*size) + 1);
         this.prepareTurns = new CyclicBarrier((size*size) + 1);
-        this.boardsExecutor = Executors.newFixedThreadPool(size*size);
-        this.timeExecutor = Executors.newSingleThreadExecutor();
+        /*this.boardsExecutor = Executors.newFixedThreadPool(size*size);
+        this.timeExecutor = Executors.newSingleThreadExecutor();*/
         this.fct = fct;
     }
 
@@ -109,17 +113,22 @@ public class LifeGame {
     // Metodo para que comience el juego (agrega tareas a executors) 
     public void startGame() {
         int size = this.boardControllers.length;
+        Thread timer, boards;
+        //this.timeExecutor.execute(new TurnManager(this, this.fct));
 
-        this.timeExecutor.execute(new TurnManager(this, this.fct));
-
+        timer = new Thread(new TurnManager(this, this.fct));
+        timer.start();
+        
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                this.boardsExecutor.execute(this.boardControllers[i][j]);
+                boards = new Thread(this.boardControllers[i][j]);
+                boards.start();
+                //this.boardsExecutor.execute(this.boardControllers[i][j]);
             }
         }
 
-        this.timeExecutor.shutdown();
-        this.boardsExecutor.shutdown();
+        /*this.timeExecutor.shutdown();
+        this.boardsExecutor.shutdown();*/
 
     }
 
